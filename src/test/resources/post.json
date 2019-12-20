@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "properties": {
+    "postId": {
+      "type": "integer",
+      "description": "Post ID"
+    },
+    "id": {
+      "type": "integer",
+      "description": "ID"
+    },
+    "name": {
+      "type": "string",
+      "description": "User name"
+    },
+    "email": {
+      "type": "string",
+      "description": "User e-mail"
+    },
+    "body": {
+      "type": "string",
+      "description": "Message"
+    }
+  }

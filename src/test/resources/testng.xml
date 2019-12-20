@@ -1,0 +1,23 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
+
+<suite name="Suite1" verbose="1" >
+    <test name="httpTests" >
+        <classes>
+            <class name="ru.ankhell.REST_Test">
+                <methods>
+                    <include name="postGetTest"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+
+    <test name="jsonSchemaTests" >
+        <classes>
+            <class name="ru.ankhell.REST_Test">
+                <methods>
+                    <include name="jsonPostsAssurance"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+</suite>
