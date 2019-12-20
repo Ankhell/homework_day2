@@ -9,6 +9,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.ArrayList;
+
 import static io.restassured.RestAssured.*;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 
@@ -55,5 +57,41 @@ public class REST_Test {
     public void jsonPostAssurance(){
         final String URL = "/posts/5";
         get(URL).then().assertThat().body(matchesJsonSchemaInClasspath("post.json"));
+    }
+
+    @Test (description = "Проверка работспособности query param")
+    public void queryParamTest(){
+        final String URL = "/posts/";
+        JsonPath body = given().
+                param("userId",1).
+                get(URL).
+                then().extract().body().jsonPath();
+        Assert.assertEquals("eum et est occaecati",body.get("title[3]"));
+    }
+
+    @Test (description = "тестирование метода POST")
+    public void postTest(){
+        String URL = "/posts/";
+        String body = "{\n" +
+                "   \"postId\":1,\n" +
+                "   \"id\":1,\n" +
+                "   \"name\":\"Jack\",\n" +
+                "   \"email\":\"nomail\",\n" +
+                "   \"body\":\"Hello world!\"\n" +
+                "}";
+        given().body(body).when().post(URL).then().statusCode(201);
+    }
+
+    @Test (description = "Негативное тестирование метода POST",expectedExceptions = AssertionError.class)
+    public void negativePostTest(){
+        String URL = "/albums/";
+        String body = "{\n" +
+                "   \"postId\":1,\n" +
+                "   \"id\":1,\n" +
+                "   \"name\":\"Jack\",\n" +
+                "   \"email\":\"nomail\",\n" +
+                "   \"body\":\"Hello world!\"\n" +
+                "}";
+        given().body(body).when().post(URL).then().statusCode(404);
     }
 }
