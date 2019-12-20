@@ -5,6 +5,7 @@ import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.path.json.JsonPath;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -12,10 +13,21 @@ import static io.restassured.RestAssured.*;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 
 public class REST_Test {
+    private static boolean ENABLE_LOGGING;
+    private static String URI;
+
+    @BeforeClass
+    public void getConfigsFromFile(){
+        Config cfg = new Config();
+        ENABLE_LOGGING = Boolean.parseBoolean(cfg.getProperty("LOG"));
+        URI = cfg.getProperty("URI");
+    }
+
     @BeforeMethod
     public void configureRestAssured(){
-        RestAssured.baseURI = "https://jsonplaceholder.typicode.com/";
-        RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
+        RestAssured.baseURI = URI;
+        if (ENABLE_LOGGING)
+            RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
         requestSpecification = given().
                 header("Accept-Language", "ru-RU,en-US").
                 header("User-Agent","Mozilla/5.0 (Windows NT 10.0; " +
@@ -29,13 +41,19 @@ public class REST_Test {
         JsonPath body = given().
                 when().get(URL)
                 .then().extract().body().jsonPath();
-//        System.out.println((String)body.get("title"));
         Assert.assertEquals("sunt aut facere repellat provident occaecati excepturi optio reprehenderit",body.get("title"));
     }
 
-    @Test (description = "Проверяем соответствие полученного json файла (posts) схеме")
-    public void jsonPostsAssurance(){
+    @Test (description = "Проверяем соответствие полученного массива (posts) схеме")
+    public void jsonPostsArrayAssurance(){
         final String URL = "/posts/";
         get(URL).then().assertThat().body(matchesJsonSchemaInClasspath("postsArray.json"));
+    }
+
+    @Test (description = "Проверяем соответствие одного элемента массива posts схеме, " +
+            "хоть это и не имеет смысла после предыдушего теста")
+    public void jsonPostAssurance(){
+        final String URL = "/posts/5";
+        get(URL).then().assertThat().body(matchesJsonSchemaInClasspath("post.json"));
     }
 }
