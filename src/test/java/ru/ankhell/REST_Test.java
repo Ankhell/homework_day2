@@ -8,19 +8,20 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import ru.ankhell.config.Config;
 
-import java.util.ArrayList;
 
 import static io.restassured.RestAssured.*;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 
+@SuppressWarnings("SpellCheckingInspection")
 public class REST_Test {
     private static boolean ENABLE_LOGGING;
     private static String URI;
 
     @BeforeClass
     public void getConfigsFromFile(){
-        Config cfg = new Config();
+        Config cfg = new Config("config.cfg");
         ENABLE_LOGGING = Boolean.parseBoolean(cfg.getProperty("LOG"));
         URI = cfg.getProperty("URI");
     }
@@ -43,20 +44,21 @@ public class REST_Test {
         JsonPath body = given().
                 when().get(URL)
                 .then().extract().body().jsonPath();
-        Assert.assertEquals("sunt aut facere repellat provident occaecati excepturi optio reprehenderit",body.get("title"));
+        Assert.assertEquals("sunt aut facere repellat provident " +
+                "occaecati excepturi optio reprehenderit",body.get("title"));
     }
 
     @Test (description = "Проверяем соответствие полученного массива (posts) схеме")
     public void jsonPostsArrayAssurance(){
         final String URL = "/posts/";
-        get(URL).then().assertThat().body(matchesJsonSchemaInClasspath("postsArray.json"));
+        get(URL).then().assertThat().body(matchesJsonSchemaInClasspath("testData/postsArray.json"));
     }
 
     @Test (description = "Проверяем соответствие одного элемента массива posts схеме, " +
             "хоть это и не имеет смысла после предыдушего теста")
     public void jsonPostAssurance(){
         final String URL = "/posts/5";
-        get(URL).then().assertThat().body(matchesJsonSchemaInClasspath("post.json"));
+        get(URL).then().assertThat().body(matchesJsonSchemaInClasspath("testData/post.json"));
     }
 
     @Test (description = "Проверка работспособности query param")
@@ -84,7 +86,7 @@ public class REST_Test {
 
     @Test (description = "Негативное тестирование метода POST",expectedExceptions = AssertionError.class)
     public void negativePostTest(){
-        String URL = "/albums/";
+        String URL = "/posts/notexistantpath/";
         String body = "{\n" +
                 "   \"postId\":1,\n" +
                 "   \"id\":1,\n" +
@@ -92,6 +94,33 @@ public class REST_Test {
                 "   \"email\":\"nomail\",\n" +
                 "   \"body\":\"Hello world!\"\n" +
                 "}";
-        given().body(body).when().post(URL).then().statusCode(404);
+        given().body(body).when().post(URL).then().statusCode(200);
+    }
+
+    @Test (description = "Тестирование метода PUT")
+    public void putTest(){
+        String URL = "/posts/1";
+        String body = "{\n" +
+                "   \"postId\":1,\n" +
+                "   \"id\":1,\n" +
+                "   \"name\":\"John\",\n" +
+                "   \"email\":\"nomail\",\n" +
+                "   \"body\":\"Hello world!\"\n" +
+                "}";
+        given().body(body).when().put(URL).then().statusCode(200);
+    }
+
+    @Test (description = "Тестирование метода DELETE")
+    public void delTest(){
+        String URL = "/posts/5";
+        given().when().delete(URL).then().statusCode(200);
+    }
+
+    @Test (description = "Проверка GET запроса для пользователя")
+    public void getUserTest(){
+        String URL = "/users/";
+        JsonPath body = given().
+                when().get(URL).then().extract().jsonPath();
+        Assert.assertEquals(body.get("[4].address.geo.lng"),"62.5342");
     }
 }
